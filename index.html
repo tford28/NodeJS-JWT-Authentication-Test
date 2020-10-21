@@ -52,7 +52,7 @@
                 });
         }
 
-        function getDashboard(name) {
+        function getDashboard(label) {
             const token = localStorage.getItem('jwt');
             axios.get('/api/dashboard', {
                 headers: {
@@ -60,7 +60,7 @@
                 }
             }).then(res => {
                 if (res && res.data && res.data.success) {
-                    const url = name + ".html";
+                    const url = label + ".html";
                     history.pushState(null, null, url);
                     document.querySelector('h1.row').innerHTML = 'Dashboard';
                     document.querySelector('main').innerHTML = res.data.myContent;
@@ -68,14 +68,14 @@
             });
         }
         
-        function getSettings(name) {
+        function getSettings(label) {
             const token = localStorage.getItem('jwt');
             axios.get('/api/settings', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             }).then(res => {
-                const url = name + ".html";
+                const url = label + ".html";
                 if (res && res.data && res.data.success) {
                     history.pushState(null, null, url);
                     document.querySelector('h1.row').innerHTML = 'Settings';
@@ -83,11 +83,31 @@
                 }
             });
         }
+        
+        const jwtToken = (token) => {
+            try {
+                return JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                return null;
+            }
+        };
 
-        addEventListener("popstate", function (e) {
-            location.reload();
-            e.preventDefault();
-        });
+        function jwtExpires() {
+            let token = localStorage.getItem('jwt')
+            if (token) {
+                let parsedToken = jwtToken(token)
+                if(Data.now() <= parsedToken.exp * 1000) {
+                    return true
+                } else {
+                    localStorage.removeItem('jwt')
+                    window.location.href = "/"
+                }
+            }
+        }
+
+        setTimeout(() => {
+            jwtExpires()
+        }, 195000)
     </script>
 </body>
 </html>
